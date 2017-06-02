@@ -4,10 +4,10 @@
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 
-#define SCREEN_WIDTH  1000
+#define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 #define SCREEN_FPS  32
-
+#define MAP_SIZE 5
 
 SDL_Window * window = NULL;
 SDL_Surface * screen = NULL;
@@ -16,6 +16,11 @@ SDL_Renderer * renderer = NULL;
 SDL_Texture * texture = NULL;
 SDL_Event event;
 
+typedef struct {
+	SDL_Rect rect;
+	SDL_Surface * image;
+	SDL_Texture * texture;
+} objects;
 
 bool init() {
 	if(SDL_Init(SDL_INIT_VIDEO) == -1) return false;
@@ -107,6 +112,97 @@ int play_game() {
 
 		}
 
+		// read 8 image
+
+		int object_number;
+		scanf("%d", &object_number);
+
+		objects object[object_number];
+
+		for(int i = 0; i < object_number; i++) {
+			object[i].image = NULL;
+			object[i].texture = NULL;
+		}
+
+
+		for(int i = 0; i < object_number; i++) {
+			char file[100];
+			int w, h, x, y;
+			scanf("%s%d%d%d%d", &file, &w, &h, &x, &y);
+
+			object[i].rect = {x, y, w, h};
+
+			object[i].image = IMG_Load(file);
+			object[i].texture = SDL_CreateTextureFromSurface(renderer, object[i].image);
+		}
+
+
+		// 5 * 5 , map
+		int inix = 300, iniy = 130;
+		for(int i = 0; i < MAP_SIZE; i++) {
+			for(int j = 0; j < MAP_SIZE; j++) {
+				SDL_Rect paste = object[8].rect;
+
+				paste.x = inix + i * paste.h;
+				paste.y = iniy + j * paste.w;
+
+				SDL_RenderCopy(renderer, object[8].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
+			}
+		}
+
+		{
+			// garbage can
+			SDL_Rect paste = object[7].rect;
+			paste.x = 1050;
+			paste.y = 10;
+			SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
+			SDL_RenderPresent(renderer);
+
+			paste.x = 1050;
+			paste.y = 720 - object[7].rect.h - 10;
+
+			SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
+			SDL_RenderPresent(renderer);
+
+
+			// bomb
+			paste = object[6].rect;
+			paste.x = 250;
+			paste.y = 10;
+			SDL_RenderCopy(renderer, object[6].texture, NULL, &paste);
+			SDL_RenderPresent(renderer);
+
+			paste.x = 250;
+			paste.y = 720 - object[6].rect.h - 10;
+
+			SDL_RenderCopy(renderer, object[6].texture, NULL, &paste);
+			SDL_RenderPresent(renderer);
+
+			// random object
+			for(int i = 0; i < 5; i++) {
+				int o = rand() % 6;
+
+				paste = object[o].rect;
+				paste.x = i * 100 + 450;
+				paste.y = 10;
+				SDL_RenderCopy(renderer, object[o].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
+
+				o = rand() % 6;
+				paste = object[o].rect;
+				paste.x = i * 100 + 450;
+				paste.y = 720 - object[o].rect.h - 10;
+				SDL_RenderCopy(renderer, object[o].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
+
+			}
+
+
+		}
+
+
+
 		while(event.type != SDL_QUIT && type ==  0) {
 			if(SDL_PollEvent(&event)) {
 				if(event.type == SDL_QUIT) break;
@@ -123,6 +219,7 @@ int play_game() {
 
 					}
 				}
+
 			}
 			SDL_Delay(1000 / SCREEN_FPS + 10);
 		}
