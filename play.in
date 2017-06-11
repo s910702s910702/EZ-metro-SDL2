@@ -1,9 +1,6 @@
-4
-play_background.png 1280 720 0 0
-play_people.png 166 229 0 70
-play_property.png 200 63 0 0
-play_material.png 62 296 0 424
-11
+1
+play_background.jpg 1280 720 0 0
+12
 1.png 100 100 0 0
 2.png 100 100 0 0
 3.png 100 100 0 0
@@ -13,5 +10,6 @@ play_material.png 62 296 0 424
 7.png 100 100 0 0
 8.png 100 100 0 0
 map.png 100 100 0 0
-s.png 100 100 0 0
+s1.png 100 100 0 0
+s2.png 100 100 0 0
 e.png 100 100 0 0
