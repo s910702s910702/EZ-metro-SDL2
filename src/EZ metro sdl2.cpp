@@ -85,8 +85,12 @@ int play_menu() {
 					int x = event.button.x;
 					int y = event.button.y;
 
-					for(int i = 2; i < 5; i++)
-						if(x >= rect[i].x && x <= rect[i].x + rect[i].w && y >= rect[i].y && y <= rect[i].y + rect[i].h) type = i - 1;
+					// 0 for play 1 for volumn 2 for ? 3 staff
+					for(int i = 0; i < 2; i++)
+						if(x >= rect[i].x && x <= rect[i].x + rect[i].w && y >= rect[i].y && y <= rect[i].y + rect[i].h) {
+							type = i + 1;
+							cout << "Menu got " << i << endl;
+						}
 				}
 			}
 		}
@@ -164,7 +168,10 @@ int play_game() {
 			}
 
 		// 5 * 5 , map
-		int inix = 380, iniy = 110;
+
+
+		int inix = 390, iniy = 110;
+
 		for(int i = 0; i < MAP_SIZE; i++) {
 			for(int j = 0; j < MAP_SIZE; j++) {
 				SDL_Rect paste = object[8].rect;
@@ -188,8 +195,8 @@ int play_game() {
 			// garbage can
 			SDL_Rect paste = object[7].rect;
 
-			paste.x = 990;
-			paste.y = 30;
+			paste.x = 11;
+			paste.y = 384;
 
 			orect.push_back(paste);
 
@@ -197,8 +204,8 @@ int play_game() {
 			//SDL_RenderPresent(renderer);
 
 
-			paste.x = 990;
-			paste.y = 720 - object[7].rect.h - 25;
+			paste.x = 1168;
+			paste.y = 720 - object[7].rect.h - 236;
 
 			orect.push_back(paste);
 
@@ -208,15 +215,15 @@ int play_game() {
 
 			// bomb
 			paste = object[6].rect;
-			paste.x = 200;
-			paste.y = 30;
+			paste.x = 11;
+			paste.y = 239;
 
 			orect.push_back(paste);
 			SDL_RenderCopy(renderer, object[6].texture, NULL, &paste);
 			//SDL_RenderPresent(renderer);
 
-			paste.x = 200;
-			paste.y = 720 - object[6].rect.h - 25;
+			paste.x = 1167;
+			paste.y = 720 - object[6].rect.h - 381;
 
 			cout << orect.size() << endl;
 			orect.push_back(paste);
@@ -231,13 +238,17 @@ int play_game() {
 			// 0 for nothing , 1 for up is conect, 2 for down is connected, 4 for left is connected, 8 for right is connected
 			int railt[2][5];
 
+			int place1x[5] = {65, 140, 162, 140, 65};
+			int place2x[5] = {1114, 1043, 1018, 1043, 1119};
+			int placey[5] = {42, 176, 310, 444, 578};
+
 			srand(NULL);
 			for(int i = 0; i < 5; i++) {
 				int o = rand() % 6;
 
 				paste = object[o].rect;
-				paste.x = i * 100 + 370;
-				paste.y = 10;
+				paste.x = place1x[i];
+				paste.y = placey[i];
 
 				railt[0][i] = rconnect(o);
 				rails[0][i] = object[o];
@@ -249,8 +260,8 @@ int play_game() {
 				o = rand() % 6;
 
 				paste = object[o].rect;
-				paste.x = i * 100 + 400;
-				paste.y = 720 - object[o].rect.h - 10;
+				paste.x = place2x[i];
+				paste.y = placey[i];
 
 				railt[1][i] = rconnect(o);
 				rails[1][i] = object[o];
@@ -353,7 +364,10 @@ int play_game() {
 								//gamet = 2;
 
 								for(int j = 1; j < 5; j++) {
-									SDL_SetRenderDrawColor(renderer, 250, 250, 220, 210);
+									if(select == 0 && j == 1) SDL_SetRenderDrawColor(renderer, 228, 192, 199, 0);
+									else if(select == 0 && j != 1) SDL_SetRenderDrawColor(renderer, 221, 176, 185, 0);
+									else if(select == 1 && j == 1) SDL_SetRenderDrawColor(renderer, 0xD3, 0xCC, 0xE5, 0);
+									else if(select == 1 && j != 1) SDL_SetRenderDrawColor(renderer, 199, 190, 221, 0);
 									railt[select][j - 1] = railt[select][j];
 									rails[select][j - 1].texture = rails[select][j].texture;
 									SDL_RenderFillRect(renderer, &rails[select][j - 1].rect);
@@ -371,7 +385,6 @@ int play_game() {
 							}
 						}
 
-
 						// click the map
 						for(int i = 0; i < 25; i++) {
 							if((x >= orect[i].x && x <= orect[i].x + orect[i].w && y >= orect[i].y && y <= orect[i].y + orect[i].h)) {
@@ -385,10 +398,17 @@ int play_game() {
 									SDL_RenderCopy(renderer, maps[i / 5][i % 5].texture, NULL, &maps[i / 5][i % 5].rect);
 
 									for(int j = 1; j < 5; j++) {
-										SDL_SetRenderDrawColor(renderer, 250, 250, 220, 210);
+
+										if(select == 0 && j == 1) SDL_SetRenderDrawColor(renderer, 228, 192, 199, 0);
+										else if(select == 0 && j != 1) SDL_SetRenderDrawColor(renderer, 221, 176, 185, 0);
+										else if(select == 1 && j == 1) SDL_SetRenderDrawColor(renderer, 0xD3, 0xCC, 0xE5, 0);
+										else if(select == 1 && j != 1) SDL_SetRenderDrawColor(renderer, 199, 190, 221, 0);
+
 										railt[select][j - 1] = railt[select][j];
 										rails[select][j - 1].texture = rails[select][j].texture;
-										SDL_RenderFillRect(renderer, &rails[select][j - 1].rect);
+
+										 SDL_RenderFillRect(renderer, &rails[select][j - 1].rect);
+										//else
 										SDL_RenderCopy(renderer, rails[select][j - 1].texture, NULL, &rails[select][j - 1].rect);
 									}
 									int o = rand() % 6;
@@ -406,7 +426,16 @@ int play_game() {
 									gamet = 0;
 
 									select ^= 1;
-									SDL_RenderCopy(renderer, maps[i / 5][i % 5].texture, NULL, &maps[i / 5][i % 5].rect);
+									SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+									SDL_RenderFillRect(renderer, &maps[i / 5][i % 5].rect);
+
+									if(i / 5 >= 1 && i / 5 <= 3 && i % 5 >= 1 && i % 5 <= 3) SDL_SetRenderDrawColor(renderer, 0xD6, 0xEB, 0xD7, 0);
+									else  SDL_SetRenderDrawColor(renderer, 0xEB, 0xF5, 0xEB, 0);
+
+									SDL_Rect temp_rect = {maps[i / 5][i % 5].rect.x + 2, maps[i / 5][i % 5].rect.y + 2, maps[i / 5][i % 5].rect.w - 4, maps[i / 5][i % 5].rect.h - 4 };
+
+									SDL_RenderFillRect(renderer, &temp_rect);
+									//SDL_RenderCopy(renderer, maps[i / 5][i % 5].texture, NULL, &maps[i / 5][i % 5].rect);
 								}
 
 								SDL_RenderPresent(renderer);
@@ -471,6 +500,7 @@ int play_game() {
 											go = true;
 											tracex--;
 										}
+										break;
 									case 6:
 										if(tracey - 1 >= 0 && walked[tracex][tracey - 1] == 0) {
 											go = true;
@@ -565,7 +595,7 @@ int main(int argc, char * args[]) {
 		}
 
 		switch(type) {
-
+		// 0 for play 1 for volumn 2 for ? 3 staff
 		case 0:
 			type = play_menu();
 			break;
@@ -586,4 +616,3 @@ int main(int argc, char * args[]) {
 	clean_up();
 	return 0;
 }
-
