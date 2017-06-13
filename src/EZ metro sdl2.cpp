@@ -9,6 +9,7 @@
 
 using namespace std;
 
+
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 #define SCREEN_FPS  60
@@ -20,6 +21,11 @@ SDL_Surface * image = NULL;
 SDL_Renderer * renderer = NULL;
 SDL_Texture * texture = NULL;
 SDL_Event event;
+Mix_Chunk *op = NULL;
+Mix_Chunk *button = NULL;
+Mix_Chunk *end = NULL;
+int type = 0; // 0 for menu, 1 for game play, 2 for option, 3 for staff
+bool played = false;
 
 typedef struct {
 	SDL_Rect rect;
@@ -41,7 +47,8 @@ int rconnect(int x) {
 bool init() {
 	if(SDL_Init(SDL_INIT_VIDEO) == -1) return false;
 	int IMG_Init(IMG_INIT_PNG);
-	window = SDL_CreateWindow("Wahaha~EZ metro", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+	if(Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 ) == -1) return false;
+	window = SDL_CreateWindow("Wahaha~ EZ metro~", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 	renderer = SDL_CreateRenderer(window, -1, 0);
 	if(window = NULL) return false;
 	else screen = SDL_GetWindowSurface(window);
@@ -50,6 +57,15 @@ bool init() {
 }
 
 int play_menu() {
+	if(played == false) {
+		op = Mix_LoadWAV("A_hisa - BloominLights (Callionet - Cherry snow).wav");
+		button = Mix_LoadWAV("Button.wav");
+		end = Mix_LoadWAV("end_sp.wav");
+		Mix_PlayChannel(-1, op, 0);
+		Mix_Volume(0, MIX_MAX_VOLUME/2);
+		played = true;
+	}
+
 	int type = 0;
 
 	freopen("menu.in", "r", stdin);
@@ -67,26 +83,35 @@ int play_menu() {
 
 		rect[i] = {x, y, w, h};
 
-
-		//SDL_Rect rect = {x, y, w, h};
 		image = IMG_Load(file);
 		texture = SDL_CreateTextureFromSurface(renderer, image);
+		for(int l = 0; l < 256; l += 10) {
+			SDL_SetTextureAlphaMod(texture, l);
+			SDL_RenderCopy(renderer, texture, NULL, &rect[i]);
+			SDL_RenderPresent(renderer);
 
-		SDL_RenderCopy(renderer, texture, NULL, &rect[i]);
-		SDL_RenderPresent(renderer);
+			SDL_Delay(1000 / SCREEN_FPS);
+		}
+		//SDL_RenderCopy(renderer, texture, NULL, &rect[i]);
+		//SDL_RenderPresent(renderer);
 
 	}
+
+	// make the into play rect smaller
+	rect[0] = { 480, 450, 360,  40};
 
 	while(event.type != SDL_QUIT && type ==  0) {
 		if(SDL_PollEvent(&event)) {
 			if(event.type == SDL_QUIT) break;
 			else if(event.type == SDL_MOUSEBUTTONDOWN) {
 				if(event.button.button == SDL_BUTTON_LEFT) {
+					Mix_PlayChannel(-1, button, 0);
+
 					int x = event.button.x;
 					int y = event.button.y;
 
-					// 0 for play 1 for volumn 2 for ? 3 staff
-					for(int i = 0; i < 2; i++)
+					// 0 for play 1 for volumn 2 for staff
+					for(int i = 0; i < menu_case; i++)
 						if(x >= rect[i].x && x <= rect[i].x + rect[i].w && y >= rect[i].y && y <= rect[i].y + rect[i].h) {
 							type = i + 1;
 							cout << "Menu got " << i << endl;
@@ -94,7 +119,7 @@ int play_menu() {
 				}
 			}
 		}
-		SDL_Delay(1000 / SCREEN_FPS + 10);
+		SDL_Delay(1000 / SCREEN_FPS);
 	}
 
 	return type;
@@ -122,9 +147,15 @@ int play_game() {
 			//SDL_Rect rect = {x, y, w, h};
 			image = IMG_Load(file);
 			texture = SDL_CreateTextureFromSurface(renderer, image);
+			for(int l = 0; l < 256; l += 10) {
+				SDL_SetTextureAlphaMod(texture, l);
+				SDL_RenderCopy(renderer, texture, NULL, &rect[i]);
+				SDL_RenderPresent(renderer);
 
-			SDL_RenderCopy(renderer, texture, NULL, &rect[i]);
-			SDL_RenderPresent(renderer);
+				SDL_Delay(1000 / SCREEN_FPS);
+			}
+			//SDL_RenderCopy(renderer, texture, NULL, &rect[i]);
+			//SDL_RenderPresent(renderer);
 
 		}
 
@@ -155,7 +186,6 @@ int play_game() {
 
 		// mapt is for checking the rail is connected or not
 		// 0 for nothing. 1 for up. 2 for down. 4 for left. 8 for right d
-
 		vector<SDL_Rect> orect;
 		objects maps[5][5];
 		int book[5][5];
@@ -168,8 +198,6 @@ int play_game() {
 			}
 
 		// 5 * 5 , map
-
-
 		int inix = 390, iniy = 110;
 
 		for(int i = 0; i < MAP_SIZE; i++) {
@@ -186,11 +214,10 @@ int play_game() {
 
 				orect.push_back(paste);
 
-				SDL_RenderCopy(renderer, maps[i][j].texture, NULL, &paste);
-				SDL_RenderPresent(renderer);
+				//SDL_RenderCopy(renderer, maps[i][j].texture, NULL, &paste);
+				//SDL_RenderPresent(renderer);
 			}
 		}
-
 
 			// garbage can
 			SDL_Rect paste = object[7].rect;
@@ -200,7 +227,14 @@ int play_game() {
 
 			orect.push_back(paste);
 
-			SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
+			for(int l = 0; l < 256; l += 60) {
+				SDL_SetTextureAlphaMod(object[7].texture, l);
+				SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
+
+				SDL_Delay(1000 / SCREEN_FPS);
+			}
+			//SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
 			//SDL_RenderPresent(renderer);
 
 
@@ -208,8 +242,15 @@ int play_game() {
 			paste.y = 720 - object[7].rect.h - 236;
 
 			orect.push_back(paste);
+			for(int l = 0; l < 256; l += 30) {
+				SDL_SetTextureAlphaMod(object[7].texture, l);
+				SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
 
-			SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
+				SDL_Delay(1000 / SCREEN_FPS);
+			}
+
+			//SDL_RenderCopy(renderer, object[7].texture, NULL, &paste);
 			//SDL_RenderPresent(renderer);
 
 
@@ -227,9 +268,16 @@ int play_game() {
 
 			cout << orect.size() << endl;
 			orect.push_back(paste);
+			for(int l = 0; l < 256; l += 60) {
+				SDL_SetTextureAlphaMod(object[6].texture, l);
+				SDL_RenderCopy(renderer, object[6].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
 
-			SDL_RenderCopy(renderer, object[6].texture, NULL, &paste);
-			SDL_RenderPresent(renderer);
+				SDL_Delay(1000 / SCREEN_FPS);
+			}
+
+			//SDL_RenderCopy(renderer, object[6].texture, NULL, &paste);
+			//SDL_RenderPresent(renderer);
 
 			objects rails[2][5];
 
@@ -254,8 +302,15 @@ int play_game() {
 				rails[0][i] = object[o];
 				rails[0][i].rect = paste;
 
-				SDL_RenderCopy(renderer, rails[0][i].texture, NULL, &paste);
-				SDL_RenderPresent(renderer);
+				for(int l = 0; l < 256; l += 60) {
+					SDL_SetTextureAlphaMod(rails[0][i].texture, l);
+					SDL_RenderCopy(renderer, rails[0][i].texture, NULL, &paste);
+					SDL_RenderPresent(renderer);
+
+					SDL_Delay(1000 / SCREEN_FPS);
+				}
+				//SDL_RenderCopy(renderer, rails[0][i].texture, NULL, &paste);
+				//SDL_RenderPresent(renderer);
 
 				o = rand() % 6;
 
@@ -267,6 +322,13 @@ int play_game() {
 				rails[1][i] = object[o];
 				rails[1][i].rect = paste;
 
+				for(int l = 0; l < 256; l += 60) {
+					SDL_SetTextureAlphaMod(rails[1][i].texture, l);
+					SDL_RenderCopy(renderer, rails[1][i].texture, NULL, &paste);
+					SDL_RenderPresent(renderer);
+
+					SDL_Delay(1000 / SCREEN_FPS);
+				}
 				SDL_RenderCopy(renderer, rails[1][i].texture, NULL, &rails[1][i].rect);
 				SDL_RenderPresent(renderer);
 
@@ -305,7 +367,14 @@ int play_game() {
 
 			orect.push_back(paste);
 
-			SDL_RenderCopy(renderer, object[10].texture, NULL, &paste);
+			for(int l = 0; l < 256; l += 60) {
+				SDL_SetTextureAlphaMod(object[10].texture, l);
+				SDL_RenderCopy(renderer, object[10].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
+
+				SDL_Delay(1000 / SCREEN_FPS);
+			}
+			//SDL_RenderCopy(renderer, object[10].texture, NULL, &paste);
 
 			// e
 			paste = object[11].rect;
@@ -317,12 +386,19 @@ int play_game() {
 			mapt[2][2] = 1 & 2 & 4 & 8;
 
 			orect.push_back(paste);
-			SDL_RenderCopy(renderer, object[11].texture, NULL, &paste);
-			SDL_RenderPresent(renderer);
+			for(int l = 0; l < 256; l += 60) {
+				SDL_SetTextureAlphaMod(object[11].texture, l);
+				SDL_RenderCopy(renderer, object[11].texture, NULL, &paste);
+				SDL_RenderPresent(renderer);
+
+				SDL_Delay(1000 / SCREEN_FPS);
+			}
+			//SDL_RenderCopy(renderer, object[11].texture, NULL, &paste);
+			//SDL_RenderPresent(renderer);
 
 
 
-		//orect: 0 ~ 24 map, 25 26 bargage can, 27 28 bomb, 29 start1, 30 start2, 31 end;
+		//orect: 0 ~ 24 map, 25 26 garbage can, 27 28 bomb, 29 start1, 30 start2, 31 end;
 		//rails: 0 ~ 4 up, 5 ~ 8 down;
 
 		int select = 0;
@@ -335,6 +411,8 @@ int play_game() {
 				if(event.type == SDL_QUIT) break;
 				else if(event.type == SDL_MOUSEBUTTONDOWN) {
 					if(event.button.button == SDL_BUTTON_LEFT) {
+						Mix_PlayChannel(-1, button, 0);
+
 						int x = event.button.x;
 						int y = event.button.y;
 
@@ -558,17 +636,69 @@ int play_game() {
 
 int play_option() {
 	int type = 0;
-
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Missing file", "I like to PEROPERO.\n Wahahahahaha ~", NULL);
 	return type;
 }
 
 int play_staff() {
-	int type = 0;
+	//SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "The grant staff", "Thank you everybody.", NULL);
 
-	return type;
+	freopen("staff.in", "r", stdin);
+
+	int staff_case = 0;
+
+	scanf("%d", &staff_case);
+
+	SDL_Rect rect[staff_case];
+	SDL_Texture *staff;
+	for(int i = 0; i < staff_case; i++) {
+		char file[100];
+		int w, h, x, y;
+		scanf("%s%d%d%d%d", &file, &w, &h, &x, &y);
+
+		rect[i] = {x, y, w, h};
+
+		image = IMG_Load(file);
+		staff = SDL_CreateTextureFromSurface(renderer, image);
+
+		//SDL_RenderCopy(renderer, staff, NULL, &rect[i]);
+		SDL_RenderPresent(renderer);
+
+	}
+
+	for(int i = 0; i < 256; i += 5) {
+		SDL_SetTextureAlphaMod(staff, i);
+		SDL_RenderCopy(renderer, staff, NULL, &rect[0]);
+		SDL_RenderPresent(renderer);
+
+		SDL_Delay(1000 / SCREEN_FPS);
+	}
+
+	while(event.type != SDL_QUIT) {
+			if(SDL_PollEvent(&event)) {
+				if(event.type == SDL_QUIT) break;
+				else if(event.type == SDL_MOUSEBUTTONDOWN) {
+					if(event.button.button == SDL_BUTTON_LEFT) {
+						Mix_PlayChannel(-1, button, 0);
+
+						break;
+					}
+				}
+			}
+			SDL_Delay(1000 / SCREEN_FPS);
+		}
+
+	cout << "Type is 0" << endl;
+
+	return 0;
 }
 
 void clean_up() {
+	Mix_FreeChunk(button);
+	Mix_FreeChunk(op);
+	Mix_FreeChunk(end);
+
+
 	SDL_DestroyTexture(texture);
 	SDL_FreeSurface(image);
 	SDL_DestroyRenderer(renderer);
@@ -581,21 +711,17 @@ void clean_up() {
 int main(int argc, char * args[]) {
 	if(!init()) return 0;
 
-	int type = 0; // 0 for menu, 1 for game play, 2 for option, 3 for staff
+
 	bool quit = false;
-
-
 
 
 	while(!quit) {
 		SDL_PollEvent(&event);
 
-		if(event.type == SDL_QUIT) {
-			break;
-		}
+		if(event.type == SDL_QUIT) break;
 
 		switch(type) {
-		// 0 for play 1 for volumn 2 for ? 3 staff
+		// 0 for play 1 for volumn 2 for staff
 		case 0:
 			type = play_menu();
 			break;
@@ -613,6 +739,10 @@ int main(int argc, char * args[]) {
 
 		SDL_Delay(1000 / SCREEN_FPS);
 	}
+
+	Mix_PlayChannel(-1, end, 0);
+	SDL_Delay(3437);
+
 	clean_up();
 	return 0;
 }
